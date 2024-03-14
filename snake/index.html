@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/tabler/tabler-icons.css" />
+</head>
+
+<body>
+
+    <div class="canvas">
+        <canvas id="canvas" width="400" height="500"></canvas>
+
+        <div class="backdrop"></div>
+        <span id="start">
+            <h2> <i class="ti ti-timeline"></i> Snake</h2>
+            <p>This game was made using vanilla JS. Please click "Start" to play the game.</p>
+            <button>Start</button>
+        </span>
+    </div>
+
+    <ul class="info">
+        <li>Score : <span id="score">0</span></li>
+        <li>Foods : <span id="food">0</span></li>
+        <li>Cells : <span id="cell">0</span></li>
+        <li>Children : <span id="children">1</span></li>
+    </ul>
+
+    <script type="module" src="src/main.js"></script>
+</body>
+
+</html>
