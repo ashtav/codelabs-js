@@ -1,8 +1,6 @@
 import { hexToRGBA } from './utils.js';
 
 export class Player {
-    // this is the player class as snake in this game
-
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -34,11 +32,11 @@ export class Player {
         ctx.beginPath();
         ctx.fillRect(this.x, this.y, this.size, this.size);
 
-        // Draw the lines connecting the cells
+        // draw the lines connecting the cells
         ctx.strokeStyle = hexToRGBA(this.color, .5)
-        ctx.lineWidth = 1; // Adjust the width of the lines as needed
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(this.x + this.size / 2, this.y + this.size / 2); // Start from the center of the head
+        ctx.moveTo(this.x + this.size / 2, this.y + this.size / 2);
 
         this.cells.forEach((cell, i) => {
             let cellCenterX = cell.x + this.size / 2;
@@ -48,7 +46,7 @@ export class Player {
 
         ctx.stroke();
 
-        // Draw the cells
+        // draw the cells
         ctx.fillStyle = hexToRGBA(this.color, this.cells.length > 100 ? .5 : .1);
         this.cells.forEach((cell, i) => {
             let size = this.size - (i * 0.1);
@@ -147,7 +145,7 @@ export class Player {
 
         for (let i = 0; i < this.lastMovements.length; i++) {
             const movement = this.lastMovements[i];
-            const key = movement.x + ',' + movement.y; // Buat kunci unik berdasarkan nilai x dan y
+            const key = movement.x + ',' + movement.y;
 
             movementCount[key] = (movementCount[key] || 0) + 1;
 

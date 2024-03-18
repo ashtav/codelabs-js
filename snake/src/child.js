@@ -1,4 +1,4 @@
-export class Hook {
+export class Child {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -23,21 +23,21 @@ export class Hook {
     }
 
     draw(ctx) {
-        // Draw the hook
+        // draw the child
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.fillRect(this.x, this.y, this.size, this.size);
 
-        // Draw the tail
-        ctx.strokeStyle = 'white'; // Set the color of the tail
-        ctx.lineWidth = 1; // Set the width of the tail
+        // draw the tail
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 1;
         ctx.beginPath();
 
-        ctx.moveTo(this.x + this.size / 2, this.y + this.size / 2); // Move to the starting point of the tail
+        ctx.moveTo(this.x + this.size / 2, this.y + this.size / 2);
         this.tail.forEach((segment, i) => {
-            const tailSize = this.size * .1; // Calculate size of tail segment
-            ctx.lineTo(segment.x, segment.y); // Draw a line to each segment of the tail
-            ctx.lineWidth = tailSize; // Set the width of the tail segment
+            const tailSize = this.size * .1;
+            ctx.lineTo(segment.x, segment.y);
+            ctx.lineWidth = tailSize;
         });
 
         ctx.stroke();
@@ -72,16 +72,16 @@ export class Hook {
             }
         }
 
-        // Update the tail
+        // update the tail
         this.updateTail();
         this.draw(ctx);
     }
 
     updateTail() {
-        // Add a new segment to the beginning of the tail
+        // add a new segment to the beginning of the tail
         this.tail.unshift({ x: this.x + this.size / 2, y: this.y + this.size / 2 });
 
-        // Trim the tail if it exceeds the maximum length
+        // trim the tail if it exceeds the maximum length
         if (this.tail.length > this.tailLength) {
             this.tail.pop();
         }

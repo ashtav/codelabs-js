@@ -1,7 +1,5 @@
 export class Controller {
-    constructor() {
-
-    }
+    constructor() { }
 
     static init(args = {}) {
         document.addEventListener('keydown', (e) => args.onKeyDown(e));

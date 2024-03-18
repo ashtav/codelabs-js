@@ -1,6 +1,6 @@
 import { Food } from './food.js';
 import { Game } from './game.js';
-import { Hook } from './hook.js';
+import { Child } from './child.js';
 import { Particle } from './particle.js';
 import { Player } from './player.js';
 
@@ -11,7 +11,7 @@ const player = new Player(canvas.width / 2, canvas.height / 2);
 
 const ctx = canvas.getContext('2d');
 
-let foods = [], particles = [], hooks = [];
+let foods = [], particles = [], children = [];
 let score = 0
 
 const path = '/assets/audio/',
@@ -57,10 +57,10 @@ function drawSquares() {
     }
 }
 
-// drawSquares()
-
 function renderFoods() {
-    if (foods.length < 50) {
+    const length = player.maxCells > 1000 ? 100 : player.maxCells > 1600 ? 200 : 50
+
+    if (foods.length < length) {
         const food = new Food();
         food.randomize(player);
 
@@ -96,9 +96,9 @@ function renderFoods() {
                 explode.play()
 
                 for (let i = 0; i < food.egg; i++) {
-                    const hook = new Hook(player.x, player.y);
-                    hook.speed = getRandSpeed(1)
-                    hooks.push(hook)
+                    const child = new Child(player.x, player.y);
+                    child.speed = getRandSpeed(1)
+                    children.push(child)
                 }
             }
 
@@ -110,8 +110,10 @@ function renderFoods() {
             audio.currentTime = 0
             audio.play()
 
-            // max speed is 9
-            player.speed += .005
+            const speed = player.maxCells > 1000 ? .01 : .005
+
+            // set max speed
+            player.speed += speed
             player.speed = Math.min(15, player.speed)
         }
     })
@@ -124,10 +126,10 @@ function renderFoods() {
         for (let food of foods) {
             food.color = food.blink ? '#FFA500' : '#008000'
 
-            // Hitung jarak antara pemain dan makanan
+            // calculate distance between player and food
             const distance = Math.sqrt((food.x - player.x) ** 2 + (food.y - player.y) ** 2);
 
-            // Jika jarak lebih dekat dari sebelumnya, update makanan terdekat dan jaraknya
+            // if previous distance is closer, update the closest food and the distance
             if (distance < closestDistance) {
                 closestFood = food;
                 closestDistance = distance;
@@ -163,7 +165,7 @@ function renderFoods() {
 
     ctx.fillStyle = 'white';
     ctx.fillText(`Speed: ${player.speed.toFixed(2)},
-Particles: ${particles.length},
+Particles: ${particles.length}
 `, 10, 15);
 }
 
@@ -177,45 +179,53 @@ function onRendered() {
         }
     })
 
-    // render hook
-    hooks.forEach((hook, i) => {
-        // get 5 closest foods
+    // render child
+    children.forEach((child, i) => {
+        // get closest foods
         const closestFoods = foods.sort((a, b) => {
-            const distanceA = Math.sqrt((a.x - hook.x) ** 2 + (a.y - hook.y) ** 2);
-            const distanceB = Math.sqrt((b.x - hook.x) ** 2 + (b.y - hook.y) ** 2);
+            const distanceA = Math.sqrt((a.x - child.x) ** 2 + (a.y - child.y) ** 2);
+            const distanceB = Math.sqrt((b.x - child.x) ** 2 + (b.y - child.y) ** 2);
 
             return distanceA - distanceB
         })
 
-        // if hook touch food, remove the food
+        // if child touch food, remove the food
         closestFoods.forEach((food, i) => {
-            const dx = Math.abs(food.x - hook.x);
-            const dy = Math.abs(food.y - hook.y);
+            const dx = Math.abs(food.x - child.x);
+            const dy = Math.abs(food.y - child.y);
 
-            if (dx < food.size + hook.size && dy < hook.size) {
+            if (dx < food.size + child.size && dy < child.size) {
+                const particle = new Particle(food.x, food.y);
+                particle.velocity = {
+                    x: (Math.random() - 0.5) * (Math.random() * 6),
+                    y: (Math.random() - 0.5) * (Math.random() * 6)
+                }
+
+                particles.push(particle)
+
                 foods.splice(i, 1);
-                hook.isAboutToDie = true
+                child.isAboutToDie = true
                 score++
-                
+
                 childEat.currentTime = 0
                 childEat.play()
             }
 
-            if(player.idle){
-                hook.isAboutToDie = true
+            if (player.idle) {
+                child.isAboutToDie = true
             }
         })
 
-        if (hook.isAboutToDie) {
-            hook.tailLength -= 1
-            hook.tail.pop()
+        if (child.isAboutToDie) {
+            child.tailLength -= 1
+            child.tail.pop()
 
-            if (hook.tailLength <= 0) {
-                hooks.splice(i, 1)
+            if (child.tailLength <= 0) {
+                children.splice(i, 1)
             }
         }
 
-        hook.update(ctx, closestFoods[i])
+        child.update(ctx, closestFoods[i])
     })
 
 }
@@ -231,19 +241,19 @@ function render() {
     setText('score', score)
     setText('food', foods.length)
     setText('cell', player.maxCells)
-    setText('children', hooks.length)
+    setText('children', children.length)
 
 }
 
 const controls = {
     onKeyDown: (e) => {
-        // if space
+        // if space pressed
         if (e.keyCode === 32) {
-            hooks = []
+            children = []
 
             for (let i = 0; i < 5; i++) {
-                const hook = new Hook(player.x, player.y);
-                hooks.push(hook)
+                const child = new Child(player.x, player.y);
+                children.push(child)
             }
 
             return

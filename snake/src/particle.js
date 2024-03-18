@@ -1,7 +1,4 @@
 export class Particle {
-    // explode particle class
-    // spread particles in the middle of food
-
     constructor(x, y) {
         this.x = x;
         this.y = y;
