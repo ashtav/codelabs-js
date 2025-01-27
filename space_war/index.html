@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space War</title>
+
+    <style>
+      html,
+      body {
+        background-color: #212121;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        user-select: none;
+      }
+
+      #canvas {
+        background-color: #333;
+      }
+
+      #canvas:hover {
+        cursor: none;
+      }
+
+      .bar {
+        color: white;
+        font-size: 11px;
+        font-family: "Courier New", Courier, monospace;
+        margin-bottom: 5px;
+        display: flex;
+        gap: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="bar">
+        <div>Health: <span id="health">0</span></div>
+        <div>Bullet: <span id="bullet">0</span></div>
+      </div>
+      <canvas id="canvas" width="400" height="400"> </canvas>
+    </div>
+    <script type="module" src="scripts/main.js"></script>
+  </body>
+</html>
