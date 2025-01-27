@@ -71,9 +71,20 @@ export class Player {
     }
   }
 
-  addBullet(value = 2) {
+  addBullet(data) {
+    const value = data?.value ?? 2
+    const isAutoPilot = data?.autopilot ?? false
+
+    // if get autopilot is true, apply to all
+    if (isAutoPilot) {
+      this.bullets.forEach((b) => b.autopilot = true)
+    }
+
     for (let i = 0; i < value; i++) {
-      this.bullets.push(new Bullet(this.x, this.y - this.size, -Math.PI / 2));
+      const bullet = new Bullet(this.x, this.y - this.size, -Math.PI / 2)
+      bullet.autopilot = data?.autopilot ?? false
+
+      this.bullets.push(bullet);
     }
 
     this.updateBulletLength();

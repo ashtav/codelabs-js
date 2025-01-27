@@ -16,6 +16,10 @@ class Game {
     this.bullets = [];
     this.packages = [];
 
+    this.score = 0
+    this.score_metric = 0
+    this.level = 1
+
     this.init();
   }
 
@@ -28,9 +32,10 @@ class Game {
     player.update();
     player.draw(ctx);
 
+    // ------------------------------ RENDER BULLETS
     for (let i = 0; i < bullets.length; i++) {
       const bullet = bullets[i];
-      bullet.update();
+      bullet.update(this.enemies);
       bullet.draw(ctx);
 
       if (bullet.y < 0) {
@@ -61,7 +66,7 @@ class Game {
             break;
 
           case "bullet":
-            player.addBullet(data.value);
+            player.addBullet(data);
             break;
 
           default:
@@ -72,10 +77,9 @@ class Game {
 
     for (let index = this.enemies.length - 1; index >= 0; index--) {
       const enemy = this.enemies[index];
-      enemy.update(player.x, player.y);
+      enemy.update(player.x, player.y, this.level);
       enemy.draw(ctx);
 
-      // Tabrakan dengan peluru
       bullets.forEach((bullet, bi) => {
         const dx = enemy.x - bullet.x;
         const dy = enemy.y - bullet.y;
@@ -84,7 +88,19 @@ class Game {
         if (distance < enemy.size) {
           this.enemies.splice(index, 1);
           bullets.splice(bi, 1);
-          player.addBullet();
+          // player.addBullet();
+
+          // add score
+          this.score++
+          this.score_metric++
+
+          if (this.score_metric >= 55) {
+            this.level++
+            this.score_metric = 0
+            Utils.html('level', this.level)
+          }
+
+          Utils.html('score', this.score)
         }
       });
 
@@ -120,9 +136,11 @@ class Game {
     Utils.html("bullet", this.player.bullets.length);
     Utils.html("health", this.player.health);
 
-    // Buat enemies
+    // SPAWN ENEMIES
     this.spawnInterval = setInterval(() => {
-      this.enemies.push(new Enemy(this.player.x, this.player.y));
+      if (this.enemies.length < 15) {
+        this.enemies.push(new Enemy(this.player.x, this.player.y));
+      }
     }, 1000);
 
     // Spawn packages every 3 seconds
@@ -135,6 +153,7 @@ class Game {
         { type: "health", value: 100, color: 'green' },
         { type: "bullet", value: 5, color: 'orange' },
         { type: "bullet", value: 10, color: 'orange' },
+        { type: "bullet", value: 10, color: 'blue', autopilot: true },
       ];
 
       // Randomly select an object from the data array
@@ -155,6 +174,7 @@ class Game {
 
     canvas.addEventListener("click", (e) => {
       this.player.fire((bullet) => {
+        bullet.speed = this.level
         this.bullets.push(bullet);
       });
     });
