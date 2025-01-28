@@ -89,7 +89,7 @@ class Game {
     const circleFired = () => {
       const angle = 2
 
-      const numBullets = 25;
+      const numBullets = 20;
       const angleOffset = (angle * Math.PI) / numBullets;
 
       for (let i = 0; i < numBullets; i++) {
@@ -99,12 +99,19 @@ class Game {
           -Math.PI / angle + i * angleOffset
         );
 
+        // newBullet.speed = (0.3 * i) < 1 ? 1 : 0.3 * i;
+
+
+        // if(i % 2 == 0){
+        //   newBullet.speed = 2
+        // }
+
         this.bullets.push(newBullet);
       }
     };
 
     const halfCircleFired = () => {
-      const numBullets = 15; // Jumlah peluru
+      const numBullets = 5; // Jumlah peluru
       const angle = Math.PI / 1; // Sudut puncak huruf V (setengah sudut 45 derajat)
       const angleOffset = angle / (numBullets - 1); // Mengatur jarak antara peluru di sepanjang garis V
       
@@ -132,7 +139,7 @@ class Game {
     });
 
     canvas.addEventListener("click", (e) => {
-      circleFired();
+      halfCircleFired();
     });
 
     document.addEventListener("keydown", (event) => {
