@@ -1,9 +1,14 @@
+import { O } from "../../assets/scripts/o.js";
+import { Bullet } from "./bullet.js";
 import { Enemy } from "./enemy.js";
 import { Package } from "./package.js";
 import { Player } from "./player.js";
 import { Utils } from "./utils.js";
 
 const ctx = canvas.getContext("2d");
+
+const fire = O.audio("fire");
+const explode = O.audio("exploded");
 
 class Game {
   constructor() {
@@ -16,9 +21,12 @@ class Game {
     this.bullets = [];
     this.packages = [];
 
-    this.score = 0
-    this.score_metric = 0
-    this.level = 1
+    this.score = 0;
+    this.score_metric = 0;
+    this.level = 1;
+
+    this.keepFired = false;
+    this.interval = null;
 
     this.init();
   }
@@ -43,6 +51,7 @@ class Game {
       }
     }
 
+    // ------------------------------ RENDER PACKAGES
     for (let i = 0; i < this.packages.length; i++) {
       const gift = this.packages[i];
       gift.update(player.x, player.y);
@@ -54,6 +63,8 @@ class Game {
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance < player.size + gift.size) {
+        explode.play();
+
         // Remove the package from the array when it collides with the player
         this.packages.splice(i, 1);
         i--; // Adjust the index after removal
@@ -91,16 +102,16 @@ class Game {
           // player.addBullet();
 
           // add score
-          this.score++
-          this.score_metric++
+          this.score++;
+          this.score_metric++;
 
           if (this.score_metric >= 55) {
-            this.level++
-            this.score_metric = 0
-            Utils.html('level', this.level)
+            this.level++;
+            this.score_metric = 0;
+            Utils.html("level", this.level);
           }
 
-          Utils.html('score', this.score)
+          Utils.html("score", this.score);
         }
       });
 
@@ -143,28 +154,51 @@ class Game {
       }
     }, 1000);
 
-    // Spawn packages every 3 seconds
+    // Spawn packages every 3 seconds | O.audio('fire')
     this.packageSpawnInterval = setInterval(() => {
       const gift = new Package();
 
+      // packages data
       const data = [
-        { type: "health", value: 25, color: 'green' },
-        { type: "health", value: 50, color: 'green' },
-        { type: "health", value: 100, color: 'green' },
-        { type: "bullet", value: 5, color: 'orange' },
-        { type: "bullet", value: 10, color: 'orange' },
-        { type: "bullet", value: 10, color: 'blue', autopilot: true },
+        { type: "health", value: 25, color: "green" },
+        { type: "health", value: 50, color: "green" },
+        { type: "health", value: 100, color: "green" },
+        { type: "bullet", value: 5, color: "orange" },
+        { type: "bullet", value: 10, color: "orange" },
+        // { type: "bullet", value: 10, color: "white", autopilot: true },
+        { type: "bullet", value: 25, color: "red", burst: true },
+        { type: "bullet", value: 25, color: "red", burst: true },
+        { type: "bullet", value: 25, color: "red", burst: true },
+        { type: "bullet", value: 25, color: "red", burst: true },
       ];
 
       // Randomly select an object from the data array
       const randomIndex = Math.floor(Math.random() * data.length);
       gift.data = data[randomIndex];
-      gift.color = data[randomIndex].color
+      gift.color = data[randomIndex].color;
 
       this.packages.push(gift);
     }, 3000);
 
     this.render();
+
+    const onFired = () => {
+      const numBullets = 15; // Jumlah peluru yang ingin disebar (15 peluru)
+      const angleOffset = (2 * Math.PI) / numBullets; // Sudut antara tiap peluru dalam 360 derajat
+
+      // Menyebarkan peluru dalam lingkaran penuh (360 derajat)
+      for (let i = 0; i < numBullets; i++) {
+        // Membuat salinan objek bullet untuk menghindari referensi yang sama
+        const newBullet = new Bullet(
+          this.player.x,
+          this.player.y - this.player.size, // Posisi player
+          -Math.PI / 2 + i * angleOffset // Mengubah sudut untuk setiap peluru
+        );
+
+        // Menambahkan peluru yang sudah tersebar ke dalam array
+        this.bullets.push(newBullet);
+      }
+    };
 
     // Kontrol
     canvas.addEventListener("mousemove", (e) => {
@@ -172,11 +206,49 @@ class Game {
       this.player.y = e.offsetY;
     });
 
+    canvas.addEventListener("mouseup", (e) => {
+      clearInterval(this.interval);
+    });
+
+    canvas.addEventListener("mousedown", (e) => {
+      this.interval = setInterval(() => onFired(), 500);
+    });
+
     canvas.addEventListener("click", (e) => {
-      this.player.fire((bullet) => {
-        bullet.speed = this.level
-        this.bullets.push(bullet);
-      });
+      const numBullets = 15; // Jumlah peluru yang ingin disebar (15 peluru)
+      const angleOffset = (2 * Math.PI) / numBullets; // Sudut antara tiap peluru dalam 360 derajat
+
+      // Menyebarkan peluru dalam lingkaran penuh (360 derajat)
+      for (let i = 0; i < numBullets; i++) {
+        // Membuat salinan objek bullet untuk menghindari referensi yang sama
+        const newBullet = new Bullet(
+          this.player.x,
+          this.player.y - this.player.size, // Posisi player
+          -Math.PI / 2 + i * angleOffset // Mengubah sudut untuk setiap peluru
+        );
+
+        // Menambahkan peluru yang sudah tersebar ke dalam array
+        this.bullets.push(newBullet);
+      }
+      // this.player.fire((bullet) => {
+      //   fire.play();
+
+      //   bullet.speed = this.level;
+      //   console.log(bullet);
+
+      //   const angleOffset = 0.2;
+
+      //   if (bullet.burst) {
+      //     for (let i = -1; i <= 1; i++) {
+      //       bullet.angle = bullet.angle + i * angleOffset
+      //       this.bullets.push(bullet);
+      //     }
+
+      //     return;
+      //   }
+
+      //   this.bullets.push(bullet);
+      // });
     });
 
     document.addEventListener("keydown", (event) => {

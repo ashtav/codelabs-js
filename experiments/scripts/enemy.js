@@ -6,7 +6,7 @@ export class Enemy {
       this.size = 2; // Ukuran enemy (lingkaran)
   
       // Kecepatan gerak
-      // this.speed = 1;
+      this.speed = 1;
       this.targetX = playerX;
       this.targetY = playerY;
   
@@ -17,7 +17,7 @@ export class Enemy {
       this.targetted = null;
     }
   
-    update(playerX, playerY, speed) {
+    update(playerX, playerY) {
       // Tambahkan posisi sekarang ke ekor
       this.tails.unshift({ x: this.x, y: this.y });
   
@@ -30,8 +30,8 @@ export class Enemy {
       const dx = playerX - this.x;
       const dy = playerY - this.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const velocityX = (dx / distance) * speed;
-      const velocityY = (dy / distance) * speed;
+      const velocityX = (dx / distance) * this.speed;
+      const velocityY = (dy / distance) * this.speed;
   
       this.x += velocityX;
       this.y += velocityY;
