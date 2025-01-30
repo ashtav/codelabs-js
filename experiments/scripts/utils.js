@@ -7,10 +7,14 @@ export class Utils {
     ctx.fillStyle = "white";
     ctx.font = "30px Courier New, Courier, monospace";
     ctx.textAlign = "center";
-    ctx.fillText("Game Over", canvas.width / 2, (canvas.height / 2) - 10);
+    ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 10);
 
     ctx.font = "11px Courier New, Courier, monospace";
-    ctx.fillText("Press space to start over.", canvas.width / 2, (canvas.height / 2) + 10);
+    ctx.fillText(
+      "Press space to start over.",
+      canvas.width / 2,
+      canvas.height / 2 + 10
+    );
   }
 
   static drawCircle(ctx, x, y, size, color) {
@@ -36,6 +40,10 @@ export class Utils {
   */
 
   static getNearestFrom(array, object) {
+    if (array.length == 0) {
+      return null;
+    }
+
     let nearest = null;
     let shortestDistance = Infinity;
 
@@ -50,6 +58,6 @@ export class Utils {
       }
     });
 
-    return nearest
+    return nearest;
   }
 }

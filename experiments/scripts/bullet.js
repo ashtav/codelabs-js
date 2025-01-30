@@ -9,6 +9,8 @@ export class Bullet {
 
     this.autopilot = true;
     this.burst = false;
+
+    this.locked = null
   }
 
   draw(ctx) {
@@ -16,6 +18,22 @@ export class Bullet {
   }
 
   update(enemies = []) {
+    // find nearest enemy
+    let enemy = Utils.getNearestFrom(enemies, this);
+
+    if (enemy) {
+      this.locked = enemy.id
+
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const angleToEnemy = Math.atan2(dy, dx);
+
+      this.x += Math.cos(angleToEnemy) * (this.speed + 1);
+      this.y += Math.sin(angleToEnemy) * (this.speed + 1);
+
+      return;
+    }
+
     // if (enemies.length != 0 && this.autopilot) {
     //   // find nearest enemy
     //   let nearestEnemy = Utils.getNearestFrom(enemies, this);

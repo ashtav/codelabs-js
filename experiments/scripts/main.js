@@ -2,6 +2,7 @@ import { O } from "../../assets/scripts/o.js";
 import { Bullet } from "./bullet.js";
 import { Enemy } from "./enemy.js";
 import { Player } from "./player.js";
+import { Spark } from "./spark.js";
 import { Utils } from "./utils.js";
 
 const ctx = canvas.getContext("2d");
@@ -18,6 +19,7 @@ class Game {
     this.player = new Player(canvas.width / 2, canvas.height / 2);
     this.enemies = [];
     this.bullets = [];
+    this.sparks = [];
 
     this.score = 0;
     this.score_metric = 0;
@@ -52,11 +54,31 @@ class Game {
       enemy.update(player.x, player.y);
       enemy.draw(ctx);
 
+      // ------------------------------ COLLISSION WITH BULLETS
+      bullets.forEach((bullet, bi) => {
+        const dx = enemy.x - bullet.x;
+        const dy = enemy.y - bullet.y;
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < enemy.size) {
+          this.enemies.splice(i, 1);
+          bullets.splice(bi, 1);
+          this.sparks.push(new Spark(enemy.x, enemy.y, 5, 5, [255, 0, 0]));
+        }
+      });
+
       // Tabrakan dengan player
       if (O.collision(enemy, player)) {
+        this.sparks.push(new Spark(player.x, player.y, 5, 5, [255, 0, 0]));
         this.enemies.splice(i, 1);
       }
     }
+
+    this.sparks.forEach((spark, index) => {
+      spark.update();
+      spark.draw(ctx);
+      if (spark.isDead()) this.sparks.splice(index, 1);
+    });
 
     this.gameID = requestAnimationFrame(this.render.bind(this));
   }
@@ -87,7 +109,7 @@ class Game {
     };
 
     const circleFired = () => {
-      const angle = 2
+      const angle = 2;
 
       const numBullets = 20;
       const angleOffset = (angle * Math.PI) / numBullets;
@@ -101,7 +123,6 @@ class Game {
 
         // newBullet.speed = (0.3 * i) < 1 ? 1 : 0.3 * i;
 
-
         // if(i % 2 == 0){
         //   newBullet.speed = 2
         // }
@@ -114,19 +135,19 @@ class Game {
       const numBullets = 5; // Jumlah peluru
       const angle = Math.PI / 1; // Sudut puncak huruf V (setengah sudut 45 derajat)
       const angleOffset = angle / (numBullets - 1); // Mengatur jarak antara peluru di sepanjang garis V
-      
+
       // Peluru bergerak ke arah tengah (pusat huruf V)
       for (let i = 0; i < numBullets; i++) {
         // Menghitung sudut untuk setiap peluru berdasarkan posisi i
         const spreadAngle = -angle + i * angleOffset;
-    
+
         // Buat peluru baru
         const newBullet = new Bullet(
           this.player.x,
           this.player.y - this.player.size,
           spreadAngle // Sudut berbeda untuk masing-masing peluru
         );
-    
+
         // Tambahkan peluru ke dalam array
         this.bullets.push(newBullet);
       }
@@ -139,7 +160,11 @@ class Game {
     });
 
     canvas.addEventListener("click", (e) => {
-      halfCircleFired();
+      // halfCircleFired();
+      onFired();
+      // for (let i = 0; i < 15; i++) {
+      //   setTimeout(() => circleFired(), i * 500);
+      // }
     });
 
     document.addEventListener("keydown", (event) => {

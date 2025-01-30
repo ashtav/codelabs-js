@@ -12,4 +12,14 @@ export class O {
 
     return distance < obj1.size + obj2.size;
   }
+
+  static rgba(rgb, a) {
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
+  }
+
+  static id() {
+    return (
+      new Date().getTime() + "-" + Math.random().toString(36).substring(2, 9)
+    );
+  }
 }
