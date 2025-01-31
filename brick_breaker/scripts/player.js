@@ -1,5 +1,5 @@
+import { Lib } from "../../assets/scripts/lib.js";
 import { Bullet } from "./bullet.js";
-import { Utils } from "./utils.js";
 
 export class Player {
   constructor(x, y) {
@@ -7,14 +7,9 @@ export class Player {
     this.y = y;
 
     this.size = 5;
-    this.health = 100;
     this.isAttacked = false;
     this.blinking = false;
     this.blinkStartTime = 0; // To track the time when attack happens
-
-    this.bullets = [...Array(3)].map(
-      () => new Bullet(this.x, this.y - this.size, -Math.PI / 2)
-    );
   }
 
   draw(ctx) {
@@ -55,36 +50,30 @@ export class Player {
     ctx.lineTo(this.x + this.size, this.y + this.size);
     ctx.closePath();
     ctx.fill();
-
-    // update bullets position based on player position
-    this.bullets.forEach((bullet) => {
-      bullet.x = this.x;
-      bullet.y = this.y - this.size;
-    });
   }
 
-  fire(bulletFired) {
-    if (this.bullets.length > 0) {
-      bulletFired(this.bullets[0]);
-      this.bullets.shift();
-      this.updateBulletLength();
+  fire(pressed) {
+    this.size = 5;
+
+    if (pressed) {
+      this.size = 4;
     }
   }
 
   addBullet(data) {
-    const value = data?.value ?? 2
-    const isAutoPilot = data?.autopilot ?? false
-    const isBurst = data?.burst ?? false
+    const value = data?.value ?? 2;
+    const isAutoPilot = data?.autopilot ?? false;
+    const isBurst = data?.burst ?? false;
 
     // if get autopilot is true, apply to all
     if (isAutoPilot) {
-      this.bullets.forEach((b) => b.autopilot = true)
+      this.bullets.forEach((b) => (b.autopilot = true));
     }
 
     for (let i = 0; i < value; i++) {
-      const bullet = new Bullet(this.x, this.y - this.size, -Math.PI / 2)
-      bullet.autopilot = data?.autopilot ?? false
-      bullet.burst = isBurst
+      const bullet = new Bullet(this.x, this.y - this.size, -Math.PI / 2);
+      bullet.autopilot = data?.autopilot ?? false;
+      bullet.burst = isBurst;
 
       this.bullets.push(bullet);
     }
@@ -92,38 +81,13 @@ export class Player {
     this.updateBulletLength();
   }
 
-  addHealth(value) {
-    this.health += value;
-
-    if (this.health > 100) {
-      this.health = 100;
-    }
-
-    Utils.html("health", this.health);
-  }
-
-  attacked(isGameOver) {
+  attacked() {
     this.isAttacked = true;
     this.blinkStartTime = 0; // Reset the start time for blinking effect
     this.blinking = true; // Start blinking immediately
-
-    this.health -= 10;
-    Utils.html("health", this.health);
-
-    // Check for game over condition
-    isGameOver(this.health <= 0);
-  }
-
-  update() {
-    // this.bullets.forEach((bullet, index) => {
-    //   bullet.update();
-    //   if (bullet.y < 0) {
-    //     this.bullets.splice(index, 1);
-    //   }
-    // });
   }
 
   updateBulletLength() {
-    Utils.html("bullet", this.bullets.length);
+    Lib.html("bullet", this.bullets.length);
   }
 }

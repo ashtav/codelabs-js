@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Space War</title>
+    <title>Brick Breaker</title>
 
     <style>
       html,
@@ -32,10 +32,14 @@
         display: flex;
         gap: 20px;
       }
+
+      .score {
+        position: fixed;
+      }
     </style>
   </head>
   <body>
-    <div>
+    <div id="game">
       <div class="bar">
         <div>Health: <span id="health">0</span></div>
         <div>Bullet: <span id="bullet">0</span></div>
@@ -44,6 +48,7 @@
       </div>
       <canvas id="canvas" width="400" height="400"> </canvas>
     </div>
+
     <script type="module" src="scripts/main.js"></script>
   </body>
 </html>

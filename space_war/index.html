@@ -32,10 +32,17 @@
         display: flex;
         gap: 20px;
       }
+
+      .score {
+        position: fixed;
+      }
     </style>
+    <link rel="stylesheet" href="../ui/score/style.css">
   </head>
   <body>
-    <div>
+    <div id="topscore" onclick="uiscore(true)">Top Score</div>
+
+    <div id="game">
       <div class="bar">
         <div>Health: <span id="health">0</span></div>
         <div>Bullet: <span id="bullet">0</span></div>
@@ -44,6 +51,24 @@
       </div>
       <canvas id="canvas" width="400" height="400"> </canvas>
     </div>
+
+    <script src="../ui/score/script.js"></script>
     <script type="module" src="scripts/main.js"></script>
+
+    <!-- -------------------------------------------------- score board -->
+    <div id="score-board" style="display: none;">
+      <div class="backdrop"></div>
+      <div class="score">
+        <div class="board">
+          <button onclick="uiscore(false)">close</button>
+          <h3>Space War - Score:</h3>
+
+          <ul>
+            <li>John Doe (2344) - 20/01/2025</li>
+            <li>David (2215) - 10/02/2024</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

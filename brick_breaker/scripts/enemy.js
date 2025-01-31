@@ -1,9 +1,5 @@
-import { O } from "../../assets/scripts/o.js";
-
 export class Enemy {
   constructor(playerX, playerY) {
-    this.id = O.id();
-
     // Posisi awal random dari atas layar
     this.x = Math.random() * canvas.width;
     this.y = -10; // Di luar layar atas
@@ -18,7 +14,7 @@ export class Enemy {
     this.tails = [];
     this.maxTails = 20; // Maksimal panjang ekor
 
-    this.targetted = null;
+    this.marked = false;
   }
 
   update(playerX, playerY) {
