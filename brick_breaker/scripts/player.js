@@ -1,55 +1,78 @@
 import { Lib } from "../../assets/scripts/lib.js";
-import { Bullet } from "./bullet.js";
+import { Ball } from "./ball.js";
 
 export class Player {
   constructor(x, y) {
-    this.x = x;
-    this.y = y;
-
     this.size = 5;
+
+    this.x = x;
+    this.y = canvas.height - 10
+
     this.isAttacked = false;
     this.blinking = false;
     this.blinkStartTime = 0; // To track the time when attack happens
+
+    this.stickAngle = 0
+
+    window.addEventListener("wheel", (e) => {
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      this.stickAngle = Math.max(-1, Math.min(1, this.stickAngle + delta));
+    });
   }
 
   draw(ctx) {
-    // Check if the player is attacked and start blinking
-    if (this.isAttacked) {
-      const blinkDuration = 2000; // Blink for 2 seconds
-      const blinkInterval = 200; // Blink every 200ms
-
-      // Start the blinking effect by tracking the time
-      if (!this.blinkStartTime) {
-        this.blinkStartTime = Date.now(); // Set start time when attacked
-      }
-
-      const elapsedTime = Date.now() - this.blinkStartTime;
-
-      // Toggle blinking based on time elapsed
-      if (elapsedTime % blinkInterval < blinkInterval / 2) {
-        this.blinking = true;
-      } else {
-        this.blinking = false;
-      }
-
-      // Stop blinking after the specified duration
-      if (elapsedTime > blinkDuration) {
-        this.isAttacked = false; // Reset the attack state
-        this.blinking = false; // Stop blinking
-        this.blinkStartTime = 0; // Reset start time
-      }
-    }
-
     // Set opacity based on blinking state
     ctx.fillStyle = `rgba(255, 255, 255, ${this.blinking ? 0.4 : 1})`;
 
-    // Draw the player shape
+    // Define rectangle properties
+    const width = this.size * 10;
+    const height = this.size - 3;
+    const radius = this.size * 0.3;
+
+    // Draw rounded rectangle
     ctx.beginPath();
-    ctx.moveTo(this.x, this.y - this.size);
-    ctx.lineTo(this.x - this.size, this.y + this.size);
-    ctx.lineTo(this.x + this.size, this.y + this.size);
+    ctx.moveTo(this.x - width / 2 + radius, this.y - height / 2);
+    ctx.lineTo(this.x + width / 2 - radius, this.y - height / 2);
+    ctx.arcTo(this.x + width / 2, this.y - height / 2, this.x + width / 2, this.y - height / 2 + radius, radius);
+    ctx.lineTo(this.x + width / 2, this.y + height / 2 - radius);
+    ctx.arcTo(this.x + width / 2, this.y + height / 2, this.x + width / 2 - radius, this.y + height / 2, radius);
+    ctx.lineTo(this.x - width / 2 + radius, this.y + height / 2);
+    ctx.arcTo(this.x - width / 2, this.y + height / 2, this.x - width / 2, this.y + height / 2 - radius, radius);
+    ctx.lineTo(this.x - width / 2, this.y - height / 2 + radius);
+    ctx.arcTo(this.x - width / 2, this.y - height / 2, this.x - width / 2 + radius, this.y - height / 2, radius);
     ctx.closePath();
     ctx.fill();
+
+    // draw dashed stick, length = 10
+    this.drawStick(ctx)
+  }
+
+  drawStick(ctx) {
+    const stickLength = 100;
+    const stickThickness = .5;
+    const angleRad = this.stickAngle * Math.PI / 4;
+
+    const x2 = this.x + Math.sin(angleRad) * stickLength;
+    const y2 = this.y - Math.cos(angleRad) * stickLength;
+
+    // Buat gradient dari pangkal ke ujung stick
+    const gradient = ctx.createLinearGradient(this.x, this.y, x2, y2);
+    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = stickThickness;
+
+    // Efek bergerak dengan lineDashOffset
+    ctx.setLineDash([5, 5]); // Panjang garis 5px, jarak 5px
+    ctx.lineDashOffset = -performance.now() / 50 % 10; // Gerakan ke atas
+
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.setLineDash([]); // Reset dash
   }
 
   fire(pressed) {

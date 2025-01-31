@@ -25,6 +25,17 @@ export class Lib {
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
   }
 
+  static hexToRgb(hex) {
+    hex = hex.replace('#', '');
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+
   static shuffleArray(arr) {
     const shuffled = [...arr];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -101,4 +112,11 @@ export class Lib {
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  static generateRandomNumber(length = 2) {
+    const min = Math.pow(10, length - 1);
+    const max = Math.pow(10, length) - 1;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
 }

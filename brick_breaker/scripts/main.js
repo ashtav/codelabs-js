@@ -1,9 +1,7 @@
 import { Lib } from "../../assets/scripts/lib.js";
-import { circleShot, halfCircleShot, singleShot } from "./bullet.js";
-import { Enemy } from "./enemy.js";
-import { Logistic } from "./logistic.js";
+import { Ball } from "./ball.js";
 import { Player } from "./player.js";
-import { Blast, Spark } from "./spark.js";
+import { Brick } from "./brick.js";
 
 const ctx = canvas.getContext("2d");
 
@@ -17,23 +15,13 @@ class Game {
     this.gameOver = false;
 
     this.player = new Player(canvas.width / 2, canvas.height / 2);
-    this.enemies = [];
-    this.bullets = [];
-    this.sparks = [];
-    this.blasts = [];
-    this.logistics = [];
+    this.balls = [];
+    this.bricks = [];
 
     this.health = 100;
     this.score = 0;
     this.score_metric = 0;
     this.level = 1;
-
-    this.bullet = {
-      value: 5,
-      type: "single",
-      autopilot: false,
-      fire: singleShot,
-    };
 
     this.init();
   }
@@ -42,188 +30,78 @@ class Game {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const player = this.player;
-    const bullets = this.bullets;
-    const logistics = this.logistics;
 
     player.draw(ctx);
 
-    // ------------------------------ RENDER BULLETS
-    for (let i = 0; i < bullets.length; i++) {
-      const bullet = bullets[i];
-      bullet.speed = this.level + 0.5;
-      bullet.update(this.enemies, this.bullet.autopilot);
-      bullet.draw(ctx);
+    // RENDER BALLS -----
+    for (let i = this.balls.length - 1; i >= 0; i--) {
+      const ball = this.balls[i];
+      ball.update();
+      ball.draw(ctx);
 
-      if (bullet.y < 0 || bullet.isDead()) {
-        bullets.splice(i, 1);
-      }
-    }
+      this.bricks.forEach((brick, i) => {
+        if (ball.checkCollision(brick)) {
+          brick.hit();
 
-    // ------------------------------ RENDER ENEMIES
-    for (let i = this.enemies.length - 1; i >= 0; i--) {
-      const enemy = this.enemies[i];
-      enemy.update(player.x, player.y);
-      enemy.draw(ctx);
+          ball.handleBallBrickCollision(brick);
+        }
 
-      // ------------------------------ COLLISSION WITH BULLETS
-      bullets.forEach((bullet, bi) => {
-        const dx = enemy.x - bullet.x;
-        const dy = enemy.y - bullet.y;
-
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < enemy.size) {
-          explode.play();
-
-          this.enemies.splice(i, 1);
-          bullets.splice(bi, 1);
-
-          this.sparks.push(new Spark(enemy.x, enemy.y, 5, 5, [255, 0, 0]));
-
-          this.score += 1;
-          this.score_metric += 1;
-          Lib.html("score", this.score);
-
-          if (this.score_metric >= 50) {
-            this.score_metric = 0;
-            this.level++;
-
-            Lib.html("level", this.level);
-          }
+        if (brick.isDead()) {
+          this.bricks.splice(i, 1)
         }
       });
-
-      // ------------------------------ ENEMY x PLAYER
-      if (Lib.collision(enemy, player)) {
-        this.sparks.push(new Spark(player.x, player.y, 5, 5, [255, 0, 0]));
-        this.enemies.splice(i, 1);
-
-        player.attacked();
-         
-        this.health = Math.max(this.health - 10, 0);
-        Lib.html("health", this.health);
-
-        if (this.health <= 0) {
-          const spark = new Spark(player.x, player.y, 50, 50, [255, 255, 255]);
-          spark.size = 5;
-
-          this.sparks.push(spark);
-          player.size = 1;
-
-          setTimeout(() => {
-            this.gameOver = true;
-            Lib.gameOver(ctx);
-
-            cancelAnimationFrame(this.gameID);
-            clearInterval(this.spawnInterval);
-          }, 300);
-        }
-      }
     }
 
-    // ------------------------------ RENDER LOGISTIC
-    for (let i = 0; i < logistics.length; i++) {
-      const e = logistics[i];
-      e.draw(ctx);
-
-      if (e.update()) {
-        this.logistics.splice(i, 1);
-      }
-
-      if (Lib.collision(e, player)) {
-        this.sparks.push(new Spark(e.x, e.y, 5, 5, [255, 255, 255]));
-        this.logistics.splice(i, 1);
-
-        this.bullet.autopilot = false;
-
-        switch (e.type) {
-          case "A":
-            this.bullet.autopilot = true;
-            break;
-
-          case "B":
-            this.bullet.value += 10;
-            Lib.html("bullet", this.bullet.value);
-            break;
-
-          case "H":
-            this.health = Math.min(this.health + 10, 100);
-            Lib.html("health", this.health);
-            break;
-
-          case "X":
-            for (let i = this.enemies.length - 1; i >= 0; i--) {
-              let e = this.enemies[i];
-
-              this.sparks.push(new Spark(e.x, e.y, 5, 5, [255, 0, 0]));
-              this.enemies.splice(i, 1);
-            }
-            break;
-
-          case "#":
-            this.bullet.fire = singleShot;
-            break;
-
-          case "$":
-            this.bullet.fire = halfCircleShot;
-            break;
-
-          case "%":
-            this.bullet.fire = circleShot;
-            break;
-
-          default:
-            break;
-        }
-      }
-    }
-
-    this.sparks.forEach((spark, index) => {
-      spark.update();
-      spark.draw(ctx);
-      if (spark.isDead()) this.sparks.splice(index, 1);
-    });
-
-    this.blasts.forEach((o, i) => {
-      o.x = player.x;
-      o.y = player.y;
-      o.update();
-      o.draw(ctx);
-      if (o.isDead()) this.blasts.splice(i, 1);
-    });
+    // RENDER BRICK -----
+    this.bricks.forEach(brick => brick.draw(ctx));
 
     if (!this.gameOver) {
       this.gameID = requestAnimationFrame(this.render.bind(this));
     }
   }
 
-  init() {
-    console.log("Game initialized!");
+  createBricks() {
+    const rows = 2;  // Jumlah baris
+    const cols = 10; // Jumlah kolom
 
-    Lib.html("bullet", this.bullet.value);
+    const spaces = {
+      x: 2, // Jarak antar brick horizontal
+      y: 2, // Jarak antar brick vertical
+      pl: 5, // Padding kiri
+      pr: 5, // Padding kanan
+      pt: 5  // Padding atas
+    };
+
+    const brickWidth = (canvas.width - spaces.pl - spaces.pr - (cols - 1) * spaces.x) / cols; // Lebar brick
+    const brickHeight = 20; // Tinggi brick
+
+    // Loop untuk menggambar brick
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        // Set posisi X brick
+        const x = spaces.pl + j * (brickWidth + spaces.x);
+
+        // Set posisi Y brick, dengan padding atas
+        const y = spaces.pt + i * (brickHeight + spaces.y);
+
+        // Buat brick baru dengan posisi dan ukuran
+        this.bricks.push(new Brick(x, y, brickWidth, brickHeight));
+      }
+    }
+  }
+
+
+  init() {
     Lib.html("health", this.health);
 
-    // SPAWN ENEMIES
-    this.spawnInterval = setInterval(() => {
-      if (this.enemies.length < 15) {
-        const enemy = new Enemy(this.player.x, this.player.y);
-        enemy.speed = this.level;
-
-        this.enemies.push(enemy);
-      }
-    }, 1000);
-
-    // SPAWN LOGISTIC
-    setInterval(() => {
-      const type = Lib.shuffleArray(["H", "B", "A", "X", "#", "$", "%"]);
-      this.logistics.push(new Logistic(type[0]));
-    }, 3000);
-
+    this.createBricks()
     this.render();
+
+    const player = this.player
 
     // Kontrol
     canvas.addEventListener("mousemove", (e) => {
       this.player.x = e.offsetX;
-      this.player.y = e.offsetY;
     });
 
     canvas.addEventListener("mousedown", (e) => {
@@ -232,23 +110,22 @@ class Game {
 
     canvas.addEventListener("mouseup", (e) => {
       this.player.fire(false);
+
+      if (e.button === 1) {
+        player.stickAngle = 0
+      }
     });
 
     canvas.addEventListener("click", (e) => {
-      if (this.bullet.value <= 0) {
-        return;
-      }
-
       fire.play();
-      this.blasts.push(
-        new Blast(this.player.x, this.player.y, this.player.size)
-      );
 
-      this.bullet.fire(this.player, this.bullets);
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-      // update bullet information
-      this.bullet.value--;
-      Lib.html("bullet", this.bullet.value);
+      const angleRad = player.stickAngle * Math.PI / 4;
+
+      this.balls.push(new Ball(player.x, canvas.height - 10, angleRad));
     });
 
     document.addEventListener("keydown", (event) => {
