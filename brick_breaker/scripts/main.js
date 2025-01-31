@@ -83,9 +83,10 @@ class Game {
 
         // Set posisi Y brick, dengan padding atas
         const y = spaces.pt + i * (brickHeight + spaces.y);
+        const value = Lib.generateRandomNumber(1)
 
         // Buat brick baru dengan posisi dan ukuran
-        this.bricks.push(new Brick(x, y, brickWidth, brickHeight));
+        this.bricks.push(new Brick(x, y, brickWidth, brickHeight, value));
       }
     }
   }
