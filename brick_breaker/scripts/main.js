@@ -1,7 +1,7 @@
 import { Lib } from "../../assets/scripts/lib.js";
 import { Ball } from "./ball.js";
-import { Player } from "./player.js";
 import { Brick } from "./brick.js";
+import { Player } from "./player.js";
 
 const ctx = canvas.getContext("2d");
 
@@ -14,7 +14,7 @@ class Game {
     this.spawnInterval = null;
     this.gameOver = false;
 
-    this.player = new Player(canvas.width / 2, canvas.height / 2);
+    this.player = new Player(canvas.width / 2);
     this.balls = [];
     this.bricks = [];
 
@@ -22,6 +22,9 @@ class Game {
     this.score = 0;
     this.score_metric = 0;
     this.level = 1;
+    this.ballSpeed = 3;
+    this.rows = 1
+    this.multiple = 1
 
     this.init();
   }
@@ -47,13 +50,36 @@ class Game {
         }
 
         if (brick.isDead()) {
-          this.bricks.splice(i, 1)
+          this.bricks.splice(i, 1);
+
+          if (this.bricks.length <= 0) {
+            this.level++;
+            this.rows++
+            this.ballSpeed++;
+            this.createBricks();
+
+            if (this.level % 10 === 0 && this.level > 0) {
+              this.rows = 1
+              this.multiple++
+            }
+
+            Lib.html("level", this.level);
+          }
         }
       });
+
+      if (ball.isDead()) {
+        this.balls.splice(i, 1);
+        Lib.html("ball", this.balls.length);
+      }
+
+      // BALLS x PLAYER
+      ball.handleBallPlayerCollision(player, this.ballSpeed);
+      player.findBall(this.balls);
     }
 
     // RENDER BRICK -----
-    this.bricks.forEach(brick => brick.draw(ctx));
+    this.bricks.forEach((brick) => brick.draw(ctx));
 
     if (!this.gameOver) {
       this.gameID = requestAnimationFrame(this.render.bind(this));
@@ -61,7 +87,7 @@ class Game {
   }
 
   createBricks() {
-    const rows = 2;  // Jumlah baris
+    const rows = this.rows; // Jumlah baris
     const cols = 10; // Jumlah kolom
 
     const spaces = {
@@ -69,10 +95,11 @@ class Game {
       y: 2, // Jarak antar brick vertical
       pl: 5, // Padding kiri
       pr: 5, // Padding kanan
-      pt: 5  // Padding atas
+      pt: 5, // Padding atas
     };
 
-    const brickWidth = (canvas.width - spaces.pl - spaces.pr - (cols - 1) * spaces.x) / cols; // Lebar brick
+    const brickWidth =
+      (canvas.width - spaces.pl - spaces.pr - (cols - 1) * spaces.x) / cols; // Lebar brick
     const brickHeight = 20; // Tinggi brick
 
     // Loop untuk menggambar brick
@@ -83,7 +110,7 @@ class Game {
 
         // Set posisi Y brick, dengan padding atas
         const y = spaces.pt + i * (brickHeight + spaces.y);
-        const value = Lib.generateRandomNumber(1)
+        const value = Lib.generateRandomNumber(this.multiple);
 
         // Buat brick baru dengan posisi dan ukuran
         this.bricks.push(new Brick(x, y, brickWidth, brickHeight, value));
@@ -91,14 +118,13 @@ class Game {
     }
   }
 
-
   init() {
     Lib.html("health", this.health);
 
-    this.createBricks()
+    this.createBricks();
     this.render();
 
-    const player = this.player
+    const player = this.player;
 
     // Kontrol
     canvas.addEventListener("mousemove", (e) => {
@@ -113,7 +139,7 @@ class Game {
       this.player.fire(false);
 
       if (e.button === 1) {
-        player.stickAngle = 0
+        player.stickAngle = 0;
       }
     });
 
@@ -124,9 +150,11 @@ class Game {
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      const angleRad = player.stickAngle * Math.PI / 4;
+      const angleRad = (player.stickAngle * Math.PI) / 4;
+      const ball = new Ball(player.x, canvas.height - 10, angleRad);
 
-      this.balls.push(new Ball(player.x, canvas.height - 10, angleRad));
+      this.balls.push(ball);
+      Lib.html("ball", this.balls.length);
     });
 
     document.addEventListener("keydown", (event) => {

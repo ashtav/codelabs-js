@@ -9,6 +9,12 @@ export class Ball {
     this.size = 2; // Ukuran bola
     this.dx = Math.sin(this.angle) * this.speed; // Kecepatan horizontal
     this.dy = -Math.cos(this.angle) * this.speed; // Kecepatan vertikal
+
+    this.ready = false;
+
+    setTimeout(() => {
+      this.ready = true;
+    }, 500);
   }
 
   draw(ctx) {
@@ -44,24 +50,54 @@ export class Ball {
     const brickBottom = brick.y + brick.height;
 
     // Periksa apakah bola berada dalam area bounding box brick
-    return !(ballRight < brickLeft ||
+    return !(
+      ballRight < brickLeft ||
       ballLeft > brickRight ||
       ballBottom < brickTop ||
-      ballTop > brickBottom);
+      ballTop > brickBottom
+    );
   }
 
   handleBallBrickCollision(brick) {
-    const brickCenterX = brick.x + brick.width / 2;
-    const brickCenterY = brick.y + brick.height / 2;
-
-    // Menentukan arah pantulan bola berdasarkan posisi relatif dengan brick
-    if (this.x - this.size < brick.x || this.x + this.size > brick.x + brick.width) {
-      this.dx = -this.dx;  // Bola memantul horizontal
+    if (
+      this.x - this.size < brick.x ||
+      this.x + this.size > brick.x + brick.width
+    ) {
+      this.dx = -this.dx; // Bola memantul horizontal
     }
 
-    if (this.y - this.size < brick.y || this.y + this.size > brick.y + brick.height) {
-      this.dy = -this.dy;  // Bola memantul vertikal
+    if (
+      this.y - this.size < brick.y ||
+      this.y + this.size > brick.y + brick.height
+    ) {
+      this.dy = -this.dy; // Bola memantul vertikal
     }
   }
 
+  handleBallPlayerCollision(player, speed = 3) {
+    if (!this.ready) return;
+
+    const playerLeft = player.x - player.width / 2;
+    const playerRight = player.x + player.width / 2;
+    const playerTop = player.y - player.height / 2;
+    const playerBottom = player.y + player.height / 2;
+
+    // Cek apakah bola bertabrakan dengan player
+    if (
+      this.x + this.size > playerLeft &&
+      this.x - this.size < playerRight &&
+      this.y + this.size > playerTop &&
+      this.y - this.size < playerBottom
+    ) {
+      this.speed = speed
+
+      // **Pantulkan bola ke atas** (hindari menembus player)
+      this.y = playerTop - this.size; // Pastikan bola langsung di atas player
+      this.dy = -Math.abs(this.dy); // Selalu mantul ke atas
+
+      // **Hit Position**: Jika kena pinggir player, pantulkan ke samping juga
+      const hitPos = (this.x - player.x) / (player.width / 2);
+      this.dx = hitPos * this.speed; // Semakin jauh dari tengah, semakin miring arahnya
+    }
+  }
 }
