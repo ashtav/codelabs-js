@@ -7,6 +7,10 @@ const ctx = canvas.getContext("2d");
 
 const fire = Lib.audio("fire");
 const explode = Lib.audio("exploded");
+const hit1 = Lib.audio("hit1");
+const hit2 = Lib.audio("hit2");
+const ball1 = Lib.audio("ball1");
+const ball2 = Lib.audio("ball2");
 
 class Game {
   constructor() {
@@ -46,10 +50,25 @@ class Game {
         if (ball.checkCollision(brick)) {
           brick.hit();
 
+          Lib.shuffleArray([ball1, ball2])[0].play()
           ball.handleBallBrickCollision(brick);
         }
 
         if (brick.isDead()) {
+          this.score++
+          Lib.html('score', this.score)
+
+          if (brick.gift != 0 && this.balls.length < 100) {
+            for (let i = 0; i < brick.gift; i++) {
+              setTimeout(() => {
+                this.balls.push(new Ball(brick.x, brick.y, player.x))
+                Lib.html("ball", this.balls.length);
+
+                fire.play()
+              }, i * 100);
+            }
+          }
+
           this.bricks.splice(i, 1);
 
           if (this.bricks.length <= 0) {
@@ -57,8 +76,9 @@ class Game {
             this.rows++
             this.ballSpeed++;
             this.createBricks();
+            explode.play()
 
-            if (this.level % 10 === 0 && this.level > 0) {
+            if (this.level % 20 == 0) {
               this.rows = 1
               this.multiple++
             }
@@ -74,7 +94,7 @@ class Game {
       }
 
       // BALLS x PLAYER
-      ball.handleBallPlayerCollision(player, this.ballSpeed);
+      ball.handleBallPlayerCollision(player, this.ballSpeed, [hit1, hit2]);
       player.findBall(this.balls);
     }
 
@@ -91,11 +111,11 @@ class Game {
     const cols = 10; // Jumlah kolom
 
     const spaces = {
-      x: 2, // Jarak antar brick horizontal
-      y: 2, // Jarak antar brick vertical
-      pl: 5, // Padding kiri
-      pr: 5, // Padding kanan
-      pt: 5, // Padding atas
+      x: 1, // Jarak antar brick horizontal
+      y: 1, // Jarak antar brick vertical
+      pl: 7, // Padding kiri
+      pr: 7, // Padding kanan
+      pt: 7, // Padding atas
     };
 
     const brickWidth =
@@ -113,7 +133,14 @@ class Game {
         const value = Lib.generateRandomNumber(this.multiple);
 
         // Buat brick baru dengan posisi dan ukuran
-        this.bricks.push(new Brick(x, y, brickWidth, brickHeight, value));
+        const brick = new Brick(x, y, brickWidth, brickHeight, value)
+
+        if (Lib.generateRandomMultiples(this.multiple, 1).includes(value) && this.level % 2 == 0) {
+          brick.color = '008000'
+          brick.gift = Lib.generateRandomNumber(1)
+        }
+
+        this.bricks.push(brick);
       }
     }
   }
@@ -143,18 +170,37 @@ class Game {
       }
     });
 
+    canvas.addEventListener("contextmenu", (e) => {
+      e.preventDefault(); // Mencegah menu klik kanan default
+
+      this.balls.forEach((ball) => {
+        ball.dx = 0;
+        ball.dy = -Math.abs(ball.speed); // Pastikan bola bergerak ke atas
+      });
+    });
+
     canvas.addEventListener("click", (e) => {
-      fire.play();
+
+      [fire, explode, hit1, hit2, ball1, ball2].forEach((e) => {
+        e.init()
+      })
+
+      // hit1.play()
 
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
       const angleRad = (player.stickAngle * Math.PI) / 4;
-      const ball = new Ball(player.x, canvas.height - 10, angleRad);
 
-      this.balls.push(ball);
-      Lib.html("ball", this.balls.length);
+      for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+          const ball = new Ball(player.x, canvas.height - 10, angleRad);
+          this.balls.push(ball);
+          Lib.html("ball", this.balls.length);
+        }, i * 200);
+      }
+
     });
 
     document.addEventListener("keydown", (event) => {

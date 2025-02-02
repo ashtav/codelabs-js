@@ -77,7 +77,7 @@ export class Player {
     const x2 = this.x + Math.sin(angleRad) * stickLength;
     const y2 = this.y - Math.cos(angleRad) * stickLength;
 
-    // Buat gradient dari pangkal ke ujung stick
+    // Buat gradient dari pangkal ke ujung stick 
     const gradient = ctx.createLinearGradient(this.x, this.y, x2, y2);
     gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
     gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
@@ -97,14 +97,14 @@ export class Player {
     ctx.setLineDash([]); // Reset dash
   }
 
-  fire(pressed) {}
+  fire(pressed) { }
 
   findBall(balls) {
     let nearest = null;
     let shortestDistance = Infinity;
 
     balls.forEach((ball) => {
-      if (ball.dy < 0) return;
+      if (ball.dy < 0 || ball.y < (canvas.height / 2)) return;
 
       const distanceToBottom = canvas.height - ball.y;
 
@@ -115,14 +115,14 @@ export class Player {
     });
 
     if (nearest) {
-      let speed = 2.2; // Kecepatan dasar
+      let speed = 3.5; // Kecepatan dasar
       let targetX = nearest.x;
       let targetY = nearest.y;
 
       // Menambahkan sedikit variasi arah supaya lebih natural
-      let randomness = (Math.random() - 0.5) * 10; // Nilai antara -5 sampai 5
-      targetX += randomness;
-      targetY += randomness;
+      // let randomness = (Math.random() - 0.1) * 1;
+      // targetX += randomness;
+      // targetY += randomness;
 
       // Hitung arah menuju target
       let directionX = targetX - this.x;

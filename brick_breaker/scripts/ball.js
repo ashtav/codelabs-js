@@ -22,21 +22,40 @@ export class Ball {
   }
 
   update() {
-    this.x += this.dx;
-    this.y += this.dy;
+    this.lastY = this.y;
 
-    // Pantulan jika kena dinding
-    if (this.x <= 0 || this.x >= canvas.width) {
-      this.dx = -this.dx; // Balik arah X
-    }
-    if (this.y <= 0) {
-      this.dy = -this.dy; // Balik arah Y
+    let steps = Math.ceil(this.speed / 2); // Bagi pergerakan ke beberapa langkah kecil
+    let stepX = this.dx / steps;
+    let stepY = this.dy / steps;
+
+    for (let i = 0; i < steps; i++) {
+      this.x += stepX;
+      this.y += stepY;
+
+      // Cegah tembus di dinding
+      if (this.x <= 0 || this.x >= canvas.width) {
+        this.dx = -this.dx;
+        break; // Hentikan pergerakan setelah tabrakan
+      }
+      if (this.y <= 0) {
+        this.dy = -this.dy;
+        break;
+      }
     }
   }
+
 
   isDead() {
-    return this.y > canvas.height; // Jika keluar bawah, bola hilang
+    // Hitung jika bola melompati batas bawah dalam satu frame
+    const passedBottom = this.lastY <= canvas.height && this.y + this.size >= canvas.height;
+
+    return (
+      passedBottom ||
+      (this.x + this.size < 0) ||
+      (this.x > canvas.width + this.size)
+    );
   }
+
 
   checkCollision(brick) {
     const ballLeft = this.x - this.size;
@@ -74,7 +93,7 @@ export class Ball {
     }
   }
 
-  handleBallPlayerCollision(player, speed = 3) {
+  handleBallPlayerCollision(player, speed = 3, audios) {
     if (!this.ready) return;
 
     const playerLeft = player.x - player.width / 2;
@@ -82,22 +101,25 @@ export class Ball {
     const playerTop = player.y - player.height / 2;
     const playerBottom = player.y + player.height / 2;
 
-    // Cek apakah bola bertabrakan dengan player
+    // Prediksi lintasan bola untuk cek apakah akan melewati paddle dalam frame berikutnya
+    const nextY = this.y + this.dy;
+    const nextX = this.x + this.dx;
+
     if (
-      this.x + this.size > playerLeft &&
-      this.x - this.size < playerRight &&
-      this.y + this.size > playerTop &&
-      this.y - this.size < playerBottom
+      this.lastY + this.size <= playerTop && nextY + this.size >= playerTop &&
+      nextX + this.size > playerLeft && nextX - this.size < playerRight
     ) {
-      this.speed = speed
+      this.speed = Math.min(speed, 4);
+      Lib.shuffleArray(audios)[0].play();
 
-      // **Pantulkan bola ke atas** (hindari menembus player)
-      this.y = playerTop - this.size; // Pastikan bola langsung di atas player
-      this.dy = -Math.abs(this.dy); // Selalu mantul ke atas
+      // Pastikan bola tetap di atas player
+      this.y = playerTop - this.size;
+      this.dy = -Math.abs(this.dy);
 
-      // **Hit Position**: Jika kena pinggir player, pantulkan ke samping juga
+      // Hit Position dengan batasan agar tidak terlalu miring
       const hitPos = (this.x - player.x) / (player.width / 2);
-      this.dx = hitPos * this.speed; // Semakin jauh dari tengah, semakin miring arahnya
+      this.dx = Math.max(-0.8, Math.min(0.8, hitPos)) * this.speed;
     }
   }
+
 }

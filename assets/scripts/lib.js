@@ -3,10 +3,18 @@ export class Lib {
     const audio = new Audio("/assets/audio/" + name + ".mp3");
 
     const play = () => {
+      audio.muted = false
+      audio.load()
       audio.play();
     };
 
+    const init = () => {
+      audio.muted = true
+      audio.play()
+    }
+
     return {
+      init: init,
       play: play,
     };
   }
@@ -118,5 +126,20 @@ export class Lib {
     const max = Math.pow(10, length) - 1;
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
+
+  static generateRandomMultiples(multiple, count) {
+    const result = [];
+    const min = Math.pow(10, multiple - 1);
+    const max = Math.pow(10, multiple) - 1;
+
+    while (result.length < count) {
+      let num = Math.floor(Math.random() * (max - min + 1)) + min;
+      result.push(num);
+    }
+
+    return result;
+  }
+
+
 
 }

@@ -8,10 +8,13 @@ export class Brick {
     this.height = h;
     this.value = value;
     this.radius = 3;
+
+    this.color = '#555555'
+    this.gift = 0
   }
 
   draw(ctx) {
-    ctx.fillStyle = Lib.hexToRgb('#555555');  // Bisa ditambahkan perubahan warna jika nilai berkurang
+    ctx.fillStyle = Lib.hexToRgb(this.color);  // Bisa ditambahkan perubahan warna jika nilai berkurang
     // ctx.fillRect(this.x, this.y, this.width, this.height);
 
     ctx.beginPath();
@@ -38,6 +41,11 @@ export class Brick {
   hit() {
     if (this.value > 0) {
       this.value -= 1;  // Kurangi nilai
+      this.color = ['008000', '06a106'].includes(this.color) ? '06a106' : '666666'
+
+      setTimeout(() => {
+        this.color = ['008000', '06a106'].includes(this.color) ? '008000' : '555555'
+      }, 100);
     }
   }
 
